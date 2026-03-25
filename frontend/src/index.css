@@ -1,0 +1,311 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+/* ===================================================
+   FlashMind — Global Styles (Premium Edition)
+   =================================================== */
+
+:root {
+  --bg-primary: #FFFFFF;
+  --bg-layout: #F8FAFC;
+  --text-primary: #0F172A;
+  --text-secondary: #475569;
+  --accent: #6366F1; /* Indigo */
+  --accent-secondary: #8B5CF6; /* Violet */
+  --accent-glow: rgba(99, 102, 241, 0.4);
+  --border: rgba(15, 23, 42, 0.08);
+  --glass-bg: rgba(255, 255, 255, 0.75);
+  --glass-border: rgba(255, 255, 255, 0.5);
+  --brand-success: #10B981;
+  
+  --shadow-sm: 0 4px 12px rgba(15, 23, 42, 0.03);
+  --shadow-lg: 0 16px 40px rgba(15, 23, 42, 0.06);
+  --shadow-hover: 0 24px 60px rgba(15, 23, 42, 0.1);
+  
+  --radius: 32px;
+  --radius-sm: 16px;
+  --transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  --font: 'Plus Jakarta Sans', sans-serif;
+  --navbar-height: 72px;
+}
+
+[data-theme="dark"] {
+  --bg-primary: #020617;
+  --bg-layout: #020617;
+  --text-primary: #F8FAFC;
+  --text-secondary: #94A3B8;
+  --glass-bg: rgba(15, 23, 42, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.05);
+  --border: rgba(255, 255, 255, 0.1);
+  --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.5);
+  --shadow-hover: 0 24px 60px rgba(0, 0, 0, 0.7);
+  --accent-glow: rgba(99, 102, 241, 0.25);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font);
+  background: var(--bg-layout);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  transition: var(--transition);
+  overflow-x: hidden;
+}
+
+/* ===================================================
+   Premium Background: Animated Nebula
+   =================================================== */
+.nebula-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  background: radial-gradient(circle at 50% 50%, #EEF2FF 0%, #F8FAFC 100%);
+  overflow: hidden;
+}
+
+[data-theme="dark"] .nebula-bg {
+  background: radial-gradient(circle at 50% 50%, #0F172A 0%, #020617 100%);
+}
+
+.nebula-item {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.5;
+  animation: moveNebula 20s infinite alternate cubic-bezier(0.45, 0, 0.55, 1);
+}
+
+.nebula-1 { width: 400px; height: 400px; background: #818CF8; top: -100px; left: -100px; animation-duration: 25s; }
+.nebula-2 { width: 500px; height: 500px; background: #C084FC; bottom: -150px; right: -150px; animation-duration: 30s; animation-delay: -5s; }
+.nebula-3 { width: 300px; height: 300px; background: #60A5FA; top: 20%; right: 10%; animation-duration: 20s; animation-delay: -10s; }
+
+@keyframes moveNebula {
+  0% { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(50px, 50px) scale(1.1); }
+}
+
+/* Layout Elements */
+.app-layout {
+  min-height: 100vh;
+  background: transparent; /* Let body bg show through */
+}
+
+.app-content {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 32px 24px;
+  padding-top: calc(var(--navbar-height) + 64px);
+  position: relative;
+  z-index: 2; /* Keep content above particles */
+}
+
+/* Glassmorphism Cards */
+.fm-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(32px);
+  -webkit-backdrop-filter: blur(32px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  transition: var(--transition);
+  position: relative;
+  overflow: hidden;
+}
+
+.fm-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
+  pointer-events: none;
+}
+
+.fm-card:hover {
+  box-shadow: var(--shadow-hover);
+  transform: translateY(-8px);
+  border-color: var(--accent-glow);
+}
+
+/* Typography Overrides */
+h1, h2, h3, h4, h5, h6, .ant-typography {
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--accent-secondary);
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--text-primary); }
+
+/* ===================================================
+   Dark Mode Particles 
+   =================================================== */
+.particles-container {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.particle {
+  position: absolute;
+  bottom: -20px;
+  width: 4px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.4);
+  border-radius: 50%;
+  animation: floatUp linear infinite;
+}
+
+@keyframes floatUp {
+  0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+  20% { opacity: 1; }
+  100% { transform: translateY(-120vh) rotate(360deg); opacity: 0; }
+}
+
+/* ===================================================
+   Premium Buttons
+   =================================================== */
+#generate-btn {
+  background: var(--accent) !important;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-secondary) 100%) !important;
+  border: none !important;
+  color: white !important;
+  font-weight: 700 !important;
+  height: 56px !important;
+  font-size: 17px !important;
+  padding: 0 40px !important;
+  border-radius: 16px !important;
+  box-shadow: 0 8px 16px var(--accent-glow) !important;
+  transition: var(--transition) !important;
+  text-transform: none !important;
+  letter-spacing: -0.01em !important;
+}
+
+#generate-btn:hover:not(:disabled) {
+  transform: translateY(-4px) scale(1.02) !important;
+  box-shadow: 0 12px 24px var(--accent-glow) !important;
+  filter: brightness(1.1);
+}
+
+#generate-btn:active:not(:disabled) {
+  transform: translateY(0) scale(0.98) !important;
+}
+
+#generate-btn:disabled {
+  background: #CBD5E1 !important;
+  box-shadow: none !important;
+  opacity: 0.7;
+}
+
+/* ===================================================
+   Navbar Styles (Fixed spacing & animations)
+   =================================================== */
+.navbar {
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  width: calc(100% - 32px);
+  max-width: 80rem;
+  margin-top: 1.5rem;
+  padding: 0.5rem 1.5rem;
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* Properly spaces Logo, Links, Actions */
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  height: var(--navbar-height);
+  transition: var(--transition);
+}
+
+[data-theme="dark"] .navbar {
+  background: rgba(20, 20, 20, 0.85);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+.nav-links {
+  display: flex;
+  gap: 2.5rem;
+  align-items: center;
+  flex: 1; /* Pushes logic properly */
+  justify-content: center; /* Centers links dynamically */
+}
+
+.navbar-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 800;
+  font-size: 20px;
+  color: var(--text-primary);
+  text-decoration: none;
+  margin-right: 2rem; /* Creates safe space from links */
+}
+
+.nav-actions {
+  margin-left: 2rem;
+  display: flex;
+  align-items: center;
+}
+
+/* Animated links */
+.navbar a {
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 15px;
+  position: relative;
+  padding: 4px 8px;
+  transition: color 0.3s ease;
+}
+
+.navbar a::after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 2px;
+  bottom: 0;
+  left: 50%;
+  background-color: var(--brand-success);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transform: translateX(-50%);
+  border-radius: 2px;
+}
+
+.navbar a:hover {
+  color: var(--text-primary);
+}
+
+.navbar a:hover::after, 
+.navbar a.active::after {
+  width: 80%;
+}
+
+.navbar a.active {
+  color: var(--text-primary);
+  font-weight: 700;
+}

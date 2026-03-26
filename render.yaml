@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: flashmind
+    runtime: docker
+    plan: free # Note: EasyOCR/Whisper might need 'starter' or 'standard' for more RAM
+    region: ohio
+    envVars:
+      - key: PORT
+        value: 8000
+      - key: OLLAMA_HOST
+        value: "http://localhost:11434" # Need to setup Ollama on Render or use an external provider
+    healthCheckPath: /api/health

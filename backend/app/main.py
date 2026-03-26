@@ -8,7 +8,12 @@ import io
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+import os
+from contextlib import asynccontextmanager
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
 from app.routers import upload, generate, quiz, chat
 from app import session_store
 
@@ -41,6 +46,31 @@ app.include_router(upload.router, prefix="/api")
 app.include_router(generate.router, prefix="/api")
 app.include_router(quiz.router, prefix="/api")
 app.include_router(chat.router, prefix="/api")
+
+
+# Serve static files for frontend — ONLY on production/deployment
+static_dir = os.path.join(os.getcwd(), "static")
+if os.path.exists(static_dir):
+    app.mount("/assets", StaticFiles(directory=os.path.join(static_dir, "assets")), name="assets")
+
+    @app.get("/")
+    @app.get("/{full_path:path}")
+    async def serve_spa(full_path: str = ""):
+        # If the path is for /api, don't serve static files (routers take precedence, but this is a fallback)
+        if full_path.startswith("api/"):
+             raise HTTPException(404)
+        
+        # Check if the file exists in static (e.g., favicon.ico, robots.txt)
+        file_path = os.path.join(static_dir, full_path)
+        if os.path.isfile(file_path):
+            return FileResponse(file_path)
+            
+        # Default to index.html for SPA routing
+        index_path = os.path.join(static_dir, "index.html")
+        if os.path.exists(index_path):
+            return FileResponse(index_path)
+        
+        raise HTTPException(404, "Frontend build not found.")
 
 
 # ---------- Health & utility endpoints ----------

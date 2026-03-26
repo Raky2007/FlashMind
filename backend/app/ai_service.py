@@ -85,6 +85,15 @@ RULES:
 - Always ensure there is a double line break between paragraphs for maximum readability.
 """
 
+METADATA_INFERENCE_PROMPT = """You are a metadata extraction assistant. Analyze the provided text and determine the most likely subject and learner level.
+
+SUBJECTS to choose from: general, math, science, history, business, programming, medicine, law, economics, languages.
+LEVELS to choose from: school, engineer, mba.
+
+Return ONLY a valid JSON object:
+{"subject": "chosen_subject", "level": "chosen_level"}
+"""
+
 
 # ---------- Ollama generation ----------
 
@@ -339,11 +348,57 @@ async def generate_explanation(req: ExplainRequest) -> str:
     return explanations.get(req.level, explanations[UserLevel.ENGINEER])
 
 
-def summarize_text(text: str, max_len: int = 200) -> str:
-    """Create a brief summary of input text."""
-    sentences = [s.strip() for s in text.split('.') if len(s.strip()) > 10]
-    summary = '. '.join(sentences[:3])
-    return (summary[:max_len] + '...') if len(summary) > max_len else summary
+
+
+async def infer_metadata(text: str) -> tuple[str, UserLevel]:
+    """Infers subject and level from text using Ollama or heuristics."""
+    if _check_ollama():
+        try:
+            raw = await _generate_with_ollama(METADATA_INFERENCE_PROMPT, text[:5000])
+            # Basic cleanup of AI response
+            cleaned = re.sub(r"```(?:json)?\s*", "", raw).strip().rstrip("`")
+            match = re.search(r"\{.*\}", cleaned, re.DOTALL)
+            if match:
+                data = json.loads(match.group())
+                subject = str(data.get("subject", "general")).lower()
+                level_str = str(data.get("level", "engineer")).lower()
+                
+                # Validate level
+                try:
+                    level = UserLevel(level_str)
+                except ValueError:
+                    level = UserLevel.ENGINEER
+                
+                return subject, level
+        except Exception as e:
+            print(f"[AI] Metadata inference error: {e}")
+
+    # Heuristic fallback
+    text_lower = text.lower()
+    subject = "general"
+    level = UserLevel.ENGINEER
+
+    # Subject heuristics
+    keywords = {
+        "math": ["algebra", "calculus", "equation", "theorem", "math"],
+        "science": ["biology", "physics", "chemistry", "cell", "atom", "energy"],
+        "history": ["century", "war", "king", "revolution", "independence"],
+        "programming": ["python", "code", "software", "api", "database", "java"],
+        "business": ["marketing", "finance", "strategy", "market", "roi"],
+        "medicine": ["anatomy", "disease", "patient", "clinical", "treatment"]
+    }
+    for s, kws in keywords.items():
+        if any(kw in text_lower for kw in kws):
+            subject = s
+            break
+
+    # Level heuristics
+    if any(kw in text_lower for kw in ["strategy", "management", "corporate", "roi", "mba"]):
+        level = UserLevel.MBA
+    elif any(kw in text_lower for kw in ["simplified", "fun fact", "story", "grade"]):
+        level = UserLevel.SCHOOL
+
+    return subject, level
 
 
 async def chat_with_ai(req: ChatRequest) -> tuple[str, list[dict]]:

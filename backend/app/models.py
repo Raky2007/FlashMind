@@ -110,6 +110,8 @@ class UploadResponse(BaseModel):
     text: str
     filename: str = ""
     language: str = "en"
+    inferred_subject: Optional[str] = "general"
+    inferred_level: Optional[UserLevel] = UserLevel.ENGINEER
 
 
 class ChatRequest(BaseModel):

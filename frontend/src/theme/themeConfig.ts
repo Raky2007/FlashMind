@@ -8,12 +8,12 @@ const fontFamily = "'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemF
 
 export const lightTheme: ThemeConfig = {
   token: {
-    colorPrimary: '#6366F1',         // Indigo
-    colorPrimaryHover: '#4F46E5',
-    colorInfo: '#8B5CF6',            // Violet
+    colorPrimary: '#4F46E5',         // Deeper Indigo
+    colorPrimaryHover: '#4338CA',
+    colorInfo: '#7C3AED',            // Violet
     colorBgContainer: '#FFFFFF',
-    colorBgLayout: '#F8FAFC',
-    colorText: '#010816',
+    colorBgLayout: '#F9FAFB',
+    colorText: '#0F172A',            // Deep Slate
     colorTextSecondary: '#475569',
     colorBorder: 'rgba(15, 23, 42, 0.08)',
     borderRadius: 20,
@@ -24,21 +24,23 @@ export const lightTheme: ThemeConfig = {
   components: {
     Button: { 
       controlHeight: 48, 
-      fontWeight: 600,
-      primaryColor: '#003366',       // Deep navy text on gold buttons
+      fontWeight: 700,
       borderRadius: 12,
+      // Premium dark buttons with gold/white text
+      primaryColor: '#FFFFFF',
     },
     Card: { 
       borderRadiusLG: 24,
-      colorBgContainer: 'rgba(255, 255, 255, 0.65)', // Glassmorphism base
+      colorBgContainer: '#FFFFFF',
+      boxShadow: '0 4px 12px rgba(15, 23, 42, 0.03)',
     },
     Input: { controlHeight: 48, borderRadius: 12 },
     Select: { controlHeight: 48, borderRadius: 12 },
     Modal: { borderRadiusLG: 24 },
     Segmented: {
-      itemColor: '#5A7E9E',
-      itemHoverColor: '#003366',
-      itemSelectedColor: '#003366',
+      itemColor: '#475569',
+      itemHoverColor: '#0F172A',
+      itemSelectedColor: '#0F172A',
       itemSelectedBg: '#FFFFFF',
     }
   },
@@ -47,10 +49,10 @@ export const lightTheme: ThemeConfig = {
 export const darkTheme: ThemeConfig = {
   token: {
     colorPrimary: '#6366F1',
-    colorPrimaryHover: '#4F46E5',
+    colorPrimaryHover: '#818CF8',
     colorBgContainer: '#0F172A',
     colorBgLayout: '#020617',
-    colorText: '#F1F5F9',
+    colorText: '#F8FAFC',
     colorTextSecondary: '#94A3B8',
     colorBorder: 'rgba(255, 255, 255, 0.1)',
     borderRadius: 20,
@@ -61,11 +63,13 @@ export const darkTheme: ThemeConfig = {
   components: {
     Button: { 
       controlHeight: 48, 
-      fontWeight: 600,
-      primaryColor: '#001A33',
+      fontWeight: 700,
       borderRadius: 12,
     },
-    Card: { borderRadiusLG: 24 },
+    Card: { 
+      borderRadiusLG: 24,
+      colorBgContainer: 'rgba(15, 23, 42, 0.8)',
+    },
     Input: { controlHeight: 48, borderRadius: 12 },
     Select: { controlHeight: 48, borderRadius: 12 },
     Modal: { borderRadiusLG: 24 },

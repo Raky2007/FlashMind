@@ -15,7 +15,16 @@ async def upload_text(text: str = ""):
     """Direct text paste input."""
     if not text.strip():
         raise HTTPException(400, "Empty text input.")
-    return UploadResponse(text=text.strip(), filename="direct_paste")
+    
+    from app import ai_service
+    subject, level = await ai_service.infer_metadata(text)
+    
+    return UploadResponse(
+        text=text.strip(), 
+        filename="direct_paste",
+        inferred_subject=subject,
+        inferred_level=level
+    )
 
 
 @router.post("/pdf", response_model=UploadResponse)
@@ -43,7 +52,15 @@ async def upload_pdf(file: UploadFile = File(...)):
         if not full_text:
             raise HTTPException(422, "Could not extract text from PDF.")
 
-        return UploadResponse(text=full_text, filename=file.filename)
+        from app import ai_service
+        subject, level = await ai_service.infer_metadata(full_text)
+
+        return UploadResponse(
+            text=full_text, 
+            filename=file.filename,
+            inferred_subject=subject,
+            inferred_level=level
+        )
 
     except ImportError:
         raise HTTPException(500, "PyMuPDF not installed. Run: pip install PyMuPDF")
@@ -78,7 +95,16 @@ async def upload_image(file: UploadFile = File(...)):
         if not full_text:
             raise HTTPException(422, "Could not extract text from image.")
 
-        return UploadResponse(text=full_text, filename=file.filename, language="en+hi")
+        from app import ai_service
+        subject, level = await ai_service.infer_metadata(full_text)
+
+        return UploadResponse(
+            text=full_text, 
+            filename=file.filename, 
+            language="en+hi",
+            inferred_subject=subject,
+            inferred_level=level
+        )
 
     except HTTPException:
         raise
@@ -117,7 +143,15 @@ async def upload_voice(file: UploadFile = File(...)):
         if not full_text:
             raise HTTPException(422, "Could not transcribe audio.")
 
-        return UploadResponse(text=full_text, filename=file.filename)
+        from app import ai_service
+        subject, level = await ai_service.infer_metadata(full_text)
+
+        return UploadResponse(
+            text=full_text, 
+            filename=file.filename,
+            inferred_subject=subject,
+            inferred_level=level
+        )
 
     except ImportError:
         raise HTTPException(500, "faster-whisper not installed. Run: pip install faster-whisper")

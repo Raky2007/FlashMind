@@ -275,7 +275,7 @@ export const uploadPdf = async (file: File) => {
     const { data } = await api.post('/upload/pdf', form, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
-    return data as { text: string; filename: string };
+    return data as { text: string; filename: string; inferred_subject?: string; inferred_level?: string };
   } catch {
     console.log('[FlashMind] Backend unavailable — extracting PDF text client-side');
     try {
@@ -310,7 +310,7 @@ export const uploadImage = async (file: File) => {
     const { data } = await api.post('/upload/image', form, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
-    return data as { text: string; filename: string };
+    return data as { text: string; filename: string; inferred_subject?: string; inferred_level?: string };
   } catch (err: any) {
     const msg = err?.response?.data?.detail || err?.message || 'OCR failed';
     throw new Error(`Image OCR Error: ${msg}. (Make sure backend is running and dependencies are installed)`);
@@ -324,10 +324,19 @@ export const uploadVoice = async (file: File) => {
     const { data } = await api.post('/upload/voice', form, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
-    return data as { text: string; filename: string };
+    return data as { text: string; filename: string; inferred_subject?: string; inferred_level?: string };
   } catch (err: any) {
     const msg = err?.response?.data?.detail || err?.message || 'Transcription failed';
     throw new Error(`Voice Upload Error: ${msg}. (Make sure backend is running and dependencies are installed)`);
+  }
+};
+
+export const uploadText = async (text: string) => {
+  try {
+    const { data } = await api.post('/upload/text', null, { params: { text } });
+    return data as { text: string; filename: string; inferred_subject?: string; inferred_level?: string };
+  } catch (err: any) {
+    throw new Error(err?.response?.data?.detail || err?.message || 'Text analysis failed');
   }
 };
 

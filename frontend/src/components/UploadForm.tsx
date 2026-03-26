@@ -11,9 +11,11 @@ import {
   ThunderboltOutlined,
   BookOutlined,
   RocketOutlined,
+  CheckCircleOutlined,
+  CloseOutlined,
 } from '@ant-design/icons';
 import { motion } from 'framer-motion';
-import { uploadPdf, uploadImage, uploadVoice, generateFlashcards, type GenerateResponse } from '../services/api';
+import { uploadPdf, uploadImage, uploadVoice, uploadText, generateFlashcards, type GenerateResponse } from '../services/api';
 
 const { TextArea } = Input;
 const { Text, Title } = Typography;
@@ -42,6 +44,13 @@ const UploadForm: React.FC<UploadFormProps> = ({ onGenerated }) => {
   const [loading, setLoading] = useState(false);
   const [uploadMode, setUploadMode] = useState<string>('pdf');
   const [timer, setTimer] = useState(0);
+  const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
+  const [modeContexts, setModeContexts] = useState<Record<string, { text: string, fileName: string | null }>>({
+    text: { text: '', fileName: null },
+    pdf: { text: '', fileName: null },
+    image: { text: '', fileName: null },
+    voice: { text: '', fileName: null },
+  });
 
   const handleFileUpload = async (file: File) => {
     setLoading(true);
@@ -60,7 +69,13 @@ const UploadForm: React.FC<UploadFormProps> = ({ onGenerated }) => {
         return false;
       }
       setText(result.text);
-      message.success(`Extracted text from ${result.filename}`);
+      setUploadedFileName(file.name);
+      // Sync immediately to local context for the current mode
+      setModeContexts(prev => ({ ...prev, [uploadMode]: { text: result.text, fileName: file.name } }));
+      
+      if (result.inferred_subject) setSubject(result.inferred_subject);
+      if (result.inferred_level) setLevel(result.inferred_level);
+      message.success(`Extracted text & detected topic: ${result.inferred_subject || 'General'}`);
     } catch (err: any) {
       const msg = err?.message || err?.response?.data?.detail || 'Upload failed';
       message.warning(msg);
@@ -116,7 +131,19 @@ const UploadForm: React.FC<UploadFormProps> = ({ onGenerated }) => {
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 32 }}>
           <Segmented
             value={uploadMode}
-            onChange={(val) => setUploadMode(val as string)}
+            onChange={(val) => {
+              const nextMode = val as string;
+              // 1. Save current buffer to the context of the EXISTING mode
+              setModeContexts(prev => ({ ...prev, [uploadMode]: { text, fileName: uploadedFileName } }));
+              
+              // 2. Load from the context of the NEW mode
+              const nextContext = modeContexts[nextMode];
+              setText(nextContext.text);
+              setUploadedFileName(nextContext.fileName);
+              
+              // 3. Switch mode
+              setUploadMode(nextMode);
+            }}
             options={[
               { label: 'Text', value: 'text', icon: <FileTextOutlined /> },
               { label: 'PDF', value: 'pdf', icon: <FileTextOutlined /> },
@@ -142,34 +169,89 @@ const UploadForm: React.FC<UploadFormProps> = ({ onGenerated }) => {
           />
         ) : (
           <div style={{ marginBottom: 28, position: 'relative', overflow: 'hidden' }}>
-            <Upload.Dragger
-              id="file-upload"
-              accept={
-                uploadMode === 'pdf' ? '.pdf' :
-                uploadMode === 'image' ? '.png,.jpg,.jpeg,.bmp,.webp' :
-                '.wav,.mp3,.m4a,.ogg,.webm,.flac'
-              }
-              beforeUpload={handleFileUpload}
-              showUploadList={false}
-              style={{ background: 'rgba(99, 102, 241, 0.03)', border: '2px dashed var(--accent)', borderRadius: 20 }}
-            >
-              <div style={{ padding: '48px 24px', textAlign: 'center' }}>
-                <p style={{ fontSize: 64, marginBottom: 20, color: 'var(--accent)' }}>
-                  <CloudUploadOutlined />
-                </p>
-                <p style={{ fontSize: 20, fontWeight: 700, marginBottom: 8, color: 'var(--text-primary)' }}>
-                  Drop your {uploadMode === 'pdf' ? 'PDF' : uploadMode === 'image' ? 'Image' : 'Audio'} here
-                </p>
-                <Text type="secondary" style={{ fontSize: 15 }}>or click to explore your files</Text>
-              </div>
-            </Upload.Dragger>
+            {uploadedFileName ? (
+              <motion.div 
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                style={{ 
+                  background: 'rgba(99, 102, 241, 0.05)', 
+                  border: '2px solid var(--accent)', 
+                  borderRadius: 20,
+                  padding: '40px 24px',
+                  textAlign: 'center',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
+                <CheckCircleOutlined style={{ fontSize: 48, color: '#52c41a', marginBottom: 16 }} />
+                <Title level={4} style={{ margin: 0, marginBottom: 8 }}>{uploadedFileName}</Title>
+                <Text type="secondary" style={{ marginBottom: 20 }}>File processed and ready for generation</Text>
+                <Button 
+                  icon={<CloseOutlined />} 
+                  onClick={() => {
+                    setUploadedFileName(null);
+                    setText('');
+                  }}
+                  danger
+                >
+                  Remove File
+                </Button>
+              </motion.div>
+            ) : (
+              <Upload.Dragger
+                id="file-upload"
+                accept={
+                  uploadMode === 'pdf' ? '.pdf' :
+                  uploadMode === 'image' ? '.png,.jpg,.jpeg,.bmp,.webp' :
+                  '.wav,.mp3,.m4a,.ogg,.webm,.flac'
+                }
+                beforeUpload={handleFileUpload}
+                showUploadList={false}
+                style={{ background: 'rgba(99, 102, 241, 0.03)', border: '2px dashed var(--accent)', borderRadius: 20 }}
+              >
+                <div style={{ padding: '48px 24px', textAlign: 'center' }}>
+                  <p style={{ fontSize: 64, marginBottom: 20, color: 'var(--accent)' }}>
+                    <CloudUploadOutlined />
+                  </p>
+                  <p style={{ fontSize: 20, fontWeight: 700, marginBottom: 8, color: 'var(--text-primary)' }}>
+                    Drop your {uploadMode === 'pdf' ? 'PDF' : uploadMode === 'image' ? 'Image' : 'Audio'} here
+                  </p>
+                  <Text type="secondary" style={{ fontSize: 15 }}>or click to explore your files</Text>
+                </div>
+              </Upload.Dragger>
+            )}
           </div>
         )}
 
-        {text && uploadMode !== 'text' && (
+        {text && (
           <Card size="small" style={{ marginBottom: 32, background: 'rgba(255,255,255,0.5)', borderRadius: 12 }}>
-            <Text type="secondary" style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1 }}>EXTRACTED TEXT</Text>
-            <div style={{ maxHeight: 250, overflow: 'auto', marginTop: 12, fontSize: 14, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+              <Text type="secondary" style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1 }}>EXTRACTED/INPUT TEXT</Text>
+              {uploadMode === 'text' && (
+                <Button 
+                  size="small" 
+                  type="link" 
+                  onClick={async () => {
+                    if (!text.trim()) return;
+                    setLoading(true);
+                    try {
+                      const res = await uploadText(text);
+                      if (res.inferred_subject) setSubject(res.inferred_subject);
+                      if (res.inferred_level) setLevel(res.inferred_level);
+                      setModeContexts(prev => ({ ...prev, text: { text, fileName: null } }));
+                      message.success(`Detected: ${res.inferred_subject}`);
+                    } catch (e) { console.error(e); }
+                    finally { setLoading(false); }
+                  }}
+                  icon={<ThunderboltOutlined />}
+                >
+                  Auto-Detect Topic
+                </Button>
+              )}
+            </div>
+            <div style={{ maxHeight: 200, overflow: 'auto', fontSize: 14, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
               {text}
             </div>
           </Card>
@@ -179,19 +261,7 @@ const UploadForm: React.FC<UploadFormProps> = ({ onGenerated }) => {
 
         {/* Settings */}
         <Row gutter={[20, 20]} style={{ marginBottom: 32 }}>
-          <Col xs={24} sm={8}>
-            <Text type="secondary" style={{ display: 'block', marginBottom: 8, fontSize: 12, fontWeight: 700, textTransform: 'uppercase' }}>
-              Level
-            </Text>
-            <Select
-              id="level-select"
-              value={level}
-              onChange={setLevel}
-              style={{ width: '100%' }}
-              options={LEVELS.map(l => ({ label: l.label, value: l.value }))}
-            />
-          </Col>
-          <Col xs={24} sm={8}>
+          <Col xs={24} sm={12}>
             <Text type="secondary" style={{ display: 'block', marginBottom: 8, fontSize: 12, fontWeight: 700, textTransform: 'uppercase' }}>
               Difficulty
             </Text>
@@ -207,17 +277,13 @@ const UploadForm: React.FC<UploadFormProps> = ({ onGenerated }) => {
               ]}
             />
           </Col>
-          <Col xs={24} sm={8}>
-            <Text type="secondary" style={{ display: 'block', marginBottom: 8, fontSize: 12, fontWeight: 700, textTransform: 'uppercase' }}>
-              Subject
-            </Text>
-            <Select
-              id="subject-select"
-              value={subject}
-              onChange={setSubject}
-              style={{ width: '100%' }}
-              options={SUBJECTS.map(s => ({ label: s.charAt(0).toUpperCase() + s.slice(1), value: s }))}
-            />
+          <Col xs={24} sm={12}>
+             <div style={{ padding: '12px 16px', background: 'rgba(0,0,0,0.03)', borderRadius: 12, border: '1px solid var(--border)' }}>
+                <Text type="secondary" style={{ display: 'block', marginBottom: 4, fontSize: 10, fontWeight: 700 }}>AUTO-DETECTED CONTEXT</Text>
+                <Title level={5} style={{ margin: 0, color: 'var(--accent)' }}>
+                  {subject.charAt(0).toUpperCase() + subject.slice(1)} • {level.charAt(0).toUpperCase() + level.slice(1)}
+                </Title>
+             </div>
           </Col>
         </Row>
 

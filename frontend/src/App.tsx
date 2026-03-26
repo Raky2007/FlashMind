@@ -16,6 +16,7 @@ import FlashcardViewer from './components/FlashcardViewer';
 import QuizMode from './components/QuizMode';
 import FMAIChat from './components/FMAIChat';
 import Dashboard from './components/Dashboard';
+import LandingPage from './components/LandingPage';
 import type { GenerateResponse, QuizSessionResult } from './services/api';
 
 const { Content } = Layout;
@@ -36,6 +37,7 @@ const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabKey>('create');
   const [generatedData, setGeneratedData] = useState<GenerateResponse | null>(null);
   const [quizResults, setQuizResults] = useState<QuizSessionResult | null>(null);
+  const [showLanding, setShowLanding] = useState(true);
 
   const handleGenerated = useCallback((response: GenerateResponse) => {
     setGeneratedData(response);
@@ -68,128 +70,136 @@ const App: React.FC = () => {
         algorithm: isDark ? theme.darkAlgorithm : theme.defaultAlgorithm,
       }}
     >
-      <Layout className="app-layout">
-        
-        {/* Premium Animated Background */}
-        <div className="nebula-bg">
-          <div className="nebula-item nebula-1"></div>
-          <div className="nebula-item nebula-2"></div>
-          <div className="nebula-item nebula-3"></div>
-        </div>
+      <AnimatePresence mode="wait">
+        {showLanding ? (
+          <motion.div key="landing" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, scale: 1.1 }}>
+            <LandingPage onEnter={() => setShowLanding(false)} />
+          </motion.div>
+        ) : (
+          <Layout className="app-layout">
+            
+            {/* Premium Animated Background */}
+            <div className="nebula-bg">
+              <div className="nebula-item nebula-1"></div>
+              <div className="nebula-item nebula-2"></div>
+              <div className="nebula-item nebula-3"></div>
+            </div>
 
-        {/* Dark Mode Particles (Enhanced) */}
-        {isDark && (
-          <div className="particles-container">
-            {[...Array(25)].map((_, i) => (
-              <div 
-                key={i} 
-                className="particle" 
-                style={{
-                  left: `${Math.random() * 100}vw`,
-                  animationDelay: `${Math.random() * 5}s`,
-                  animationDuration: `${10 + Math.random() * 15}s`,
-                  opacity: Math.random() * 0.5 + 0.2
-                }} 
-              />
-            ))}
-          </div>
-        )}
-
-        {/* Navbar */}
-        <nav className="navbar">
-          <a href="#home" className="navbar-logo" onClick={(e) => { e.preventDefault(); setActiveTab('create'); }}>
-            <ThunderboltFilled style={{ color: '#FFD700' }} className="app-logo-icon" />
-            <span>Flash<span className="brand-text">Mind</span></span>
-          </a>
-
-          <div className="nav-links">
-            {tabs.map(tab => (
-              <a
-                key={tab.key}
-                href={`#${tab.key}`}
-                className={activeTab === tab.key ? 'active' : ''}
-                onClick={(e) => {
-                  e.preventDefault();
-                  setActiveTab(tab.key);
-                }}
-              >
-                {tab.label}
-              </a>
-            ))}
-          </div>
-
-          <div className="nav-actions">
-            <Switch
-              id="dark-mode-toggle"
-              checked={isDark}
-              onChange={toggleTheme}
-              checkedChildren={<BulbFilled />}
-              unCheckedChildren={<BulbOutlined />}
-              style={{ background: isDark ? '#003366' : '#7DA7D9' }}
-            />
-          </div>
-        </nav>
-
-        {/* Content */}
-        <Content className="app-content">
-          <AnimatePresence mode="wait">
-            {activeTab === 'create' && (
-              <motion.div key="create" {...pageTransition}>
-                <UploadForm onGenerated={handleGenerated} />
-              </motion.div>
-            )}
-
-            {activeTab === 'study' && (
-              <motion.div key="study" {...pageTransition}>
-                {generatedData ? (
-                  <FlashcardViewer
-                    flashcards={generatedData.flashcards}
-                    level={generatedData.level}
-                    sessionId={generatedData.session_id}
+            {/* Dark Mode Particles (Enhanced) */}
+            {isDark && (
+              <div className="particles-container">
+                {[...Array(25)].map((_, i) => (
+                  <div 
+                    key={i} 
+                    className="particle" 
+                    style={{
+                      left: `${Math.random() * 100}vw`,
+                      animationDelay: `${Math.random() * 5}s`,
+                      animationDuration: `${10 + Math.random() * 15}s`,
+                      opacity: Math.random() * 0.5 + 0.2
+                    }} 
                   />
-                ) : (
-                  <EmptyState tab="study" onAction={() => setActiveTab('create')} />
+                ))}
+              </div>
+            )}
+
+            {/* Navbar */}
+            <nav className="navbar">
+              <a href="#home" className="navbar-logo" onClick={(e) => { e.preventDefault(); setActiveTab('create'); }}>
+                <ThunderboltFilled style={{ color: '#FFD700' }} className="app-logo-icon" />
+                <span>Flash<span className="brand-text">Mind</span></span>
+              </a>
+
+              <div className="nav-links">
+                {tabs.map(tab => (
+                  <a
+                    key={tab.key}
+                    href={`#${tab.key}`}
+                    className={activeTab === tab.key ? 'active' : ''}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setActiveTab(tab.key);
+                    }}
+                  >
+                    {tab.label}
+                  </a>
+                ))}
+              </div>
+
+              <div className="nav-actions">
+                <Switch
+                  id="dark-mode-toggle"
+                  checked={isDark}
+                  onChange={toggleTheme}
+                  checkedChildren={<BulbFilled />}
+                  unCheckedChildren={<BulbOutlined />}
+                  style={{ background: isDark ? '#003366' : '#7DA7D9' }}
+                />
+              </div>
+            </nav>
+
+            {/* Content */}
+            <Content className="app-content">
+              <AnimatePresence mode="wait">
+                {activeTab === 'create' && (
+                  <motion.div key="create" {...pageTransition}>
+                    <UploadForm onGenerated={handleGenerated} />
+                  </motion.div>
                 )}
-              </motion.div>
-            )}
 
-            {activeTab === 'quiz' && (
-              <motion.div key="quiz" {...pageTransition}>
-                {generatedData ? (
-                  <QuizMode sessionId={generatedData.session_id} flashcards={generatedData.flashcards} onComplete={handleQuizComplete} />
-                ) : (
-                   <EmptyState tab="quiz" onAction={() => setActiveTab('create')} />
+                {activeTab === 'study' && (
+                  <motion.div key="study" {...pageTransition}>
+                    {generatedData ? (
+                      <FlashcardViewer
+                        flashcards={generatedData.flashcards}
+                        level={generatedData.level}
+                        sessionId={generatedData.session_id}
+                      />
+                    ) : (
+                      <EmptyState tab="study" onAction={() => setActiveTab('create')} />
+                    )}
+                  </motion.div>
                 )}
-              </motion.div>
-            )}
 
-            {activeTab === 'fmai' && (
-              <motion.div key="fmai" {...pageTransition}>
-                <FMAIChat level={(generatedData?.level as any) || 'engineer'} />
-              </motion.div>
-            )}
+                {activeTab === 'quiz' && (
+                  <motion.div key="quiz" {...pageTransition}>
+                    {generatedData ? (
+                      <QuizMode sessionId={generatedData.session_id} flashcards={generatedData.flashcards} onComplete={handleQuizComplete} />
+                    ) : (
+                      <EmptyState tab="quiz" onAction={() => setActiveTab('create')} />
+                    )}
+                  </motion.div>
+                )}
 
-            {activeTab === 'dashboard' && (
-              <motion.div key="dashboard" {...pageTransition}>
-                <Dashboard />
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </Content>
+                {activeTab === 'fmai' && (
+                  <motion.div key="fmai" {...pageTransition}>
+                    <FMAIChat level={(generatedData?.level as any) || 'engineer'} />
+                  </motion.div>
+                )}
 
-        {/* Footer */}
-        <div style={{
-          textAlign: 'center',
-          padding: '24px 0',
-          color: 'var(--text-secondary)',
-          fontSize: 13,
-          fontWeight: 500,
-          position: 'relative',
-          zIndex: 1
-        }}>
-          FlashMind — AI-Powered Learning ⚡ Privacy-first • No paid APIs • 100% local
-        </div>
-      </Layout>
+                {activeTab === 'dashboard' && (
+                  <motion.div key="dashboard" {...pageTransition}>
+                    <Dashboard />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </Content>
+
+            {/* Footer */}
+            <div style={{
+              textAlign: 'center',
+              padding: '24px 0',
+              color: 'var(--text-secondary)',
+              fontSize: 13,
+              fontWeight: 500,
+              position: 'relative',
+              zIndex: 1
+            }}>
+              FlashMind — AI-Powered Learning ⚡ Privacy-first • No paid APIs • 100% local
+            </div>
+          </Layout>
+        )}
+      </AnimatePresence>
     </ConfigProvider>
   );
 };
